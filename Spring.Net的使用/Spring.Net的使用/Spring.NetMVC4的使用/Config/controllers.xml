@@ -1,0 +1,9 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<objects xmlns="http://www.springframework.net">
+  <description>An  example that demonstrates simple IoC features.</description>
+  <!--object的name可以自定义，property中的属性name不能自定义-->
+  <object name="" type="Spring.NetMVC4的使用.Controllers.HomeController,Spring.NetMVC4的使用" singleton="false">
+    <property name="testClassServer" ref="TestService"></property>
+  </object>
+</objects>
+

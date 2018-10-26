@@ -1,0 +1,6 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<objects>
+  <object name="TestService" type="Spring.NetMVC5的使用.TestClass,Spring.NetMVC5的使用">
+  </object>
+</objects>
+

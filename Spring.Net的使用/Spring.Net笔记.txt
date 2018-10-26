@@ -1,0 +1,260 @@
+﻿使用Spring.Net主要做的两件事：
+1. IOC 控制器反转
+创建对象的权利由开发人员自己控制New，转到了 由容器来控制。
+
+2. DI(Dependency Injection) 依赖注入
+通过容器来创建对象的时候，在对象的初始化是可以给一些属性、构造方法的参数等注入默认值。
+
+3. AOP  面向切面编程 权限校验
+
+-----------
+
+【IOC的使用】
+
+步骤：
+
+1. 创建项目，引入两个DLL
+
+Common.Logging.dll
+Spring.Core.dll
+
+2. 修改配置文件
+<?xml version="1.0" encoding="utf-8" ?>
+<configuration>
+  <configSections>
+    <sectionGroup name="spring">
+      <section name="context" type="Spring.Context.Support.ContextHandler, Spring.Core"/>
+      <section name="objects" type="Spring.Context.Support.DefaultSectionHandler, Spring.Core" />
+    </sectionGroup>
+  </configSections>
+  <spring>
+    <context>
+      <resource uri="config://spring/objects"/>
+    </context>
+    <objects xmlns="http://www.springframework.net">
+      <description>An  example that demonstrates simple IoC features.</description>
+      // 添加下面这个既可以
+      // name="自定义" type="命名空间.类名,命名空间"
+       <object name="Person"      type="Spring.Net的IOC使用.Person, Spring.Net的IOC使用">    </object>
+    </objects>
+  </spring>
+</configuration>
+
+
+3. 使用
+
+static void Main(string[] args)
+{
+    IApplicationContext ctx = ContextRegistry.GetContext(); // 获取配置文件内容
+    Person lister = (Person)ctx.GetObject("Person");   // 获取指定类
+
+    Console.WriteLine(lister.SayHello());
+    Console.ReadKey();
+}
+
+
+public class Person
+{
+    public int Id { get; set; }
+    public string Name { get; set; }
+
+    public string SayHello()
+    {
+        return "hello python";
+    }
+}
+
+---------
+【 DI 属性注入】
+
+安装上面的步骤，只需要改下配置文件就行
+
+<?xml version="1.0" encoding="utf-8" ?>
+<configuration>
+  <configSections>
+    <sectionGroup name="spring">
+      <section name="context" type="Spring.Context.Support.ContextHandler, Spring.Core"/>
+      <section name="objects" type="Spring.Context.Support.DefaultSectionHandler, Spring.Core" />
+    </sectionGroup>
+  </configSections>
+  <spring>
+    <context>
+      <resource uri="config://spring/objects"/>
+    </context>
+    <objects xmlns="http://www.springframework.net">
+      <description>An  example that demonstrates simple IoC features.</description>
+      <object name="Person"      type="Spring.Net的IOC使用.Person, Spring.Net的IOC使用">
+        // 添加属性值 
+      	// name ="person类中的属性值"  value="给这个属性的值"
+        <property name="Name" value="yjc"/>
+      </object>
+    </objects>
+  </spring>
+</configuration>
+
+注意：如果一个类中引入了另一个类中的属性或者方法，则配置文件要改为如下:
+
+1. 类
+public class Person
+{
+    public int Id { get; set; }
+    public string Name { get; set; }
+    public Student student { get; set; }
+    public string SayHello()
+    {
+        return "hello python  "+Name+","+student.Age;
+    }
+}
+
+public class Student
+{
+    public int Age { get; set; }
+}
+
+2. 配置文件
+<?xml version="1.0" encoding="utf-8" ?>
+<configuration>
+  <configSections>
+    <sectionGroup name="spring">
+      <section name="context" type="Spring.Context.Support.ContextHandler, Spring.Core"/>
+      <section name="objects" type="Spring.Context.Support.DefaultSectionHandler, Spring.Core" />
+    </sectionGroup>
+  </configSections>
+  <spring>
+    <context>
+      <resource uri="config://spring/objects"/>
+    </context>
+    <objects xmlns="http://www.springframework.net">
+      <description>An  example that demonstrates simple IoC features.</description>
+      <object name="Person"      type="Spring.Net的IOC使用.Person, Spring.Net的IOC使用">
+        <property name="Name" value="yjc"/>
+        // 引用另一个IOC模式类
+        <property name="Student" ref="Student"/>
+      </object>
+      <object name="Student"      type="Spring.Net的IOC使用.Student, Spring.Net的IOC使用">
+        <property name="Age" value="18"/>
+      </object>
+    </objects>
+  </spring>
+</configuration>
+
+3. 具体实现
+ static void Main(string[] args)
+{
+    IApplicationContext ctx = ContextRegistry.GetContext();
+    Person lister = (Person)ctx.GetObject("Person");
+
+    Console.WriteLine(lister.SayHello());
+    Console.ReadKey();
+}
+
+-----------
+
+MVC4 和 MVC5的使用步骤是一样的
+
+参照地址：https://blog.csdn.net/zhaobw831/article/details/78328325?locationNum=3&fps=1
+
+
+注意：MVC5应用中必要的dll如下：
+
+Common.Logging.dll 
+Spring.Core.dll 
+Spring.Web.dll 
+Spring.Web.Mvc5.dll 
+Spring.Web.Extensions.dll
+
+
+步骤：
+1. 创建MVC项目
+
+2. 安装包
+可以通过Nuget安装：
+install-package spring.core
+install-package spring.web
+install-package spring.web.mvc5
+install-package spring.web.extensions
+install-package microsoft.aspnet.webapi
+
+
+3. 在MVC项目下添加Config文件夹，新增俩个xml：controllers.xml,services.xml
+controllers.xml:
+
+<?xml version="1.0" encoding="utf-8" ?>
+<objects xmlns="http://www.springframework.net">
+  <description>An  example that demonstrates simple IoC features.</description>
+  <!--object的name可以自定义，property中的属性name不能自定义-->
+  <object name="" type="Spring.NetMVC4的使用.Controllers.HomeController,Spring.NetMVC4的使用" singleton="false">
+    <property name="testClassServer" ref="TestService"></property>
+  </object>
+</objects>
+
+---
+services.xml:
+
+<?xml version="1.0" encoding="utf-8" ?>
+<objects>
+  <object name="TestService" type="Spring.NetMVC4的使用.TestClass,Spring.NetMVC4的使用">
+  </object>
+</objects>
+
+4. 右键属性，将这俩个xml的输出目录的值改为总是输出复制
+
+5. 修改web.config
+
+在configuration下的第一个节点添加：
+<configuration>
+
+  <configSections>
+    <sectionGroup name="spring">
+    	// 注意：如果是mvc5则将后面的Spring.Web.Mvc4改为Spring.Web.Mvc5
+      <section name="context" type="Spring.Context.Support.MvcContextHandler, Spring.Web.Mvc4" />
+    </sectionGroup>
+  </configSections>
+  <spring>
+    <context>
+      <resource uri="file://~/Config/controllers.xml" />
+      <resource uri="file://~/Config/services.xml" />
+    </context>
+  </spring>
+
+</configuration>
+
+
+6. 修改Global.asax.cs的父类，添加测试代码
+将System.Web.HttpApplication改为：Spring.Web.Mvc.SpringMvcApplication
+
+public class MvcApplication : Spring.Web.Mvc.SpringMvcApplication
+{}
+
+
+7. 创建控制器和类
+public class HomeController : Controller
+{
+    public TestClass testClassServer { get; set; }
+    // GET: Home
+    public ActionResult Index()
+    {
+        return Content(testClassServer.TestGet());
+    }
+}
+
+
+8. 类
+public class TestClass
+{
+    public string TestGet()
+    {
+        return "this is test content";
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
